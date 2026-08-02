@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   BatteryCharging,
@@ -16,7 +16,6 @@ import {
   MapPin,
   Menu,
   Moon,
-  Route,
   ShieldCheck,
   Sparkles,
   Sun,
@@ -32,6 +31,7 @@ const copy = {
     heroBadge: 'Thuần điện · Thuần trải nghiệm',
     heroTitleTop: 'EV Rental —\ncùng bạn',
     heroTitleBottom: 'trên mọi hành trình.',
+    journeyTitle: 'Cùng bạn trên mọi nẻo đường',
     heroBody:
       'Chọn xe trong vài phút, nhận xe linh hoạt và tận hưởng từng cây số với một hành trình không phát thải.',
     explore: 'Khám phá dòng xe',
@@ -95,6 +95,7 @@ const copy = {
     heroBadge: 'Fully electric · Fully effortless',
     heroTitleTop: 'EV Rental —\nwith you',
     heroTitleBottom: 'on every journey.',
+    journeyTitle: 'With you on every road',
     heroBody:
       'Choose your car in minutes, pick it up your way and enjoy every kilometre with a quieter, emission-free drive.',
     explore: 'Explore the fleet',
@@ -156,7 +157,67 @@ const copy = {
 const navLinks = ['#home', '#fleet', '#how', '#benefits']
 const benefitIcons = [BatteryCharging, ShieldCheck, Clock3, Check]
 const stepIcons = [MapPin, CalendarDays, Car]
-const heroImage = `${import.meta.env.BASE_URL}images/ev-hero.png`
+const heroRoadImage = `${import.meta.env.BASE_URL}images/ev-hero-road.png`
+const heroCarImage = `${import.meta.env.BASE_URL}images/ev-scroll-car.png`
+const fleetSpriteImage = `${import.meta.env.BASE_URL}images/ev-fleet-sprite.png`
+const fleetSpriteImageTwo = `${import.meta.env.BASE_URL}images/ev-fleet-sprite-2.png`
+
+const showcaseCars = [
+  { brand: 'AERA', model: 'CITY ONE', type: 'Urban EV', range: '420 km' },
+  { brand: 'NOVA', model: 'S7', type: 'Sport sedan', range: '510 km' },
+  { brand: 'ORBIT', model: 'CROSS', type: 'Family crossover', range: '485 km' },
+  { brand: 'KAZE', model: 'TERRAIN X', type: 'Adventure SUV', range: '560 km' },
+  { brand: 'LUMEN', model: 'FASTBACK', type: 'Premium EV', range: '590 km' },
+  { brand: 'AERA', model: 'TOURER', type: 'Grand tourer', range: '545 km' },
+  { brand: 'NOVA', model: 'E-MOTION', type: 'Smart sedan', range: '530 km' },
+  { brand: 'ORBIT', model: 'FAMILY+', type: '7-seat EV', range: '470 km' },
+  { brand: 'KAZE', model: 'URBAN', type: 'City compact', range: '390 km' },
+  { brand: 'LUMEN', model: 'GRAND E', type: 'Executive EV', range: '610 km' },
+]
+
+function clamp(value, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function smoothStep(start, end, value) {
+  const progress = clamp((value - start) / (end - start))
+  return progress * progress * (3 - 2 * progress)
+}
+
+function useScrollProgress(sectionRef) {
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    let frameId = 0
+
+    const update = () => {
+      frameId = 0
+      const section = sectionRef.current
+      if (!section) return
+
+      const rect = section.getBoundingClientRect()
+      const distance = Math.max(1, rect.height - window.innerHeight)
+      const nextProgress = clamp(-rect.top / distance)
+      setProgress((current) => Math.abs(current - nextProgress) > 0.001 ? nextProgress : current)
+    }
+
+    const requestUpdate = () => {
+      if (!frameId) frameId = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+      if (frameId) window.cancelAnimationFrame(frameId)
+    }
+  }, [sectionRef])
+
+  return progress
+}
 
 function Brand({ inverse = false }) {
   return (
@@ -181,7 +242,7 @@ function Header({ t, lang, setLang, dark, setDark }) {
 
   return (
     <header className="absolute inset-x-0 top-0 z-50 px-4 sm:px-6 lg:px-8">
-      <nav className="mx-auto flex h-24 max-w-[1440px] items-center justify-between border-b border-black/15 dark:border-white/20 lg:h-28">
+      <nav className="mx-auto flex h-24 max-w-[1440px] items-center justify-between lg:h-28">
         <Brand />
 
         <div className="hidden items-center gap-7 xl:gap-10 lg:flex">
@@ -203,17 +264,17 @@ function Header({ t, lang, setLang, dark, setDark }) {
           </button>
           <button
             onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-            className="round-action min-w-12 gap-1.5 px-3 text-xs font-extrabold"
+            className="round-action min-w-12 gap-1.5 px-3 text-xs font-medium"
             aria-label={t.language}
             title={t.language}
           >
             <Globe2 size={16} />
             {lang === 'vi' ? 'EN' : 'VN'}
           </button>
-          <a href="#login" className="ml-2 px-3 py-3 text-sm font-bold text-black transition-colors hover:text-green-700 dark:text-white dark:hover:text-acid">
+          <a href="#login" className="ml-2 px-3 py-3 text-sm font-medium text-black transition-colors hover:text-green-700 dark:text-white dark:hover:text-acid">
             {t.login}
           </a>
-          <a href="#signup" className="btn-white h-11 px-5 text-sm">
+          <a href="#signup" className="btn-white header-cta h-11 px-5 text-sm">
             {t.signup}
           </a>
         </div>
@@ -228,7 +289,7 @@ function Header({ t, lang, setLang, dark, setDark }) {
           </button>
           <button
             onClick={() => setLang(lang === 'vi' ? 'en' : 'vi')}
-            className="round-action px-3 text-xs font-extrabold"
+            className="round-action px-3 text-xs font-medium"
             aria-label={t.language}
           >
             {lang === 'vi' ? 'EN' : 'VN'}
@@ -246,17 +307,17 @@ function Header({ t, lang, setLang, dark, setDark }) {
               key={item}
               href={navLinks[index]}
               onClick={() => setOpen(false)}
-              className="flex items-center justify-between border-b border-black/10 px-4 py-4 font-bold last:border-b-0 dark:border-white/10"
+              className="flex items-center justify-between border-b border-black/10 px-4 py-4 font-medium last:border-b-0 dark:border-white/10"
             >
               {item}
               <ChevronRight size={18} />
             </a>
           ))}
           <div className="grid grid-cols-2 gap-2 pt-3">
-            <a href="#login" className="flex h-12 items-center justify-center border border-black font-bold dark:border-white">
+            <a href="#login" className="flex h-12 items-center justify-center rounded-lg border border-black font-medium dark:border-white">
               {t.login}
             </a>
-            <a href="#signup" className="btn-white h-12 text-sm">
+            <a href="#signup" className="btn-white header-cta h-12 text-sm">
               {t.signup}
             </a>
           </div>
@@ -267,42 +328,100 @@ function Header({ t, lang, setLang, dark, setDark }) {
 }
 
 function Hero({ t }) {
+  const sectionRef = useRef(null)
+  const progress = useScrollProgress(sectionRef)
+  const driveProgress = smoothStep(0.08, 0.88, progress)
+  const sceneZoom = smoothStep(0.16, 0.88, progress)
+  const journeyReveal = smoothStep(0.28, 0.52, progress)
+  const journeyOpacity = journeyReveal * (1 - smoothStep(0.78, 0.98, progress) * 0.72)
+  const signatureProgress = smoothStep(0.48, 0.9, progress)
+  const carBob = Math.sin(driveProgress * Math.PI * 8) * -2
+
   return (
     <>
-      <section id="home" className="relative min-h-[860px] overflow-hidden lg:h-[100svh] lg:min-h-[680px] lg:max-h-[920px]">
-        <img
-          src={heroImage}
-          alt="Sleek electric car driving on a modern urban highway"
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover object-[61%_bottom] lg:object-bottom"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/35 dark:from-black/30 dark:to-black/55" />
+      <section ref={sectionRef} id="home" className="relative h-[230svh] bg-black">
+        <div className="sticky top-0 h-[100svh] min-h-[620px] overflow-hidden">
+          <img
+            src={heroRoadImage}
+            alt="Modern urban highway at sunset"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover object-bottom"
+            style={{
+              transform: `scale(${1 + sceneZoom * 0.18})`,
+              transformOrigin: '52% 58%',
+              willChange: 'transform',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/45" />
+          <div
+            className="hero-speed-lines"
+            style={{ opacity: driveProgress * 0.72, backgroundPositionX: `${driveProgress * -1200}px` }}
+            aria-hidden="true"
+          />
 
-        <div className="relative mx-auto flex min-h-[860px] max-w-[1440px] items-center px-5 pb-56 pt-36 sm:px-8 lg:h-[100svh] lg:min-h-[680px] lg:max-h-[920px] lg:px-12 lg:pb-28 lg:pt-32">
-          <div className="w-full max-w-3xl">
-            <div className="mb-6 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-acid text-black">
-                <Zap size={14} fill="currentColor" />
-              </span>
-              {t.heroBadge}
-            </div>
-            <h1 className="max-w-5xl text-[clamp(3.05rem,4.9vw,5.2rem)] font-black leading-[0.92] tracking-[-0.06em]">
-              <span className="block whitespace-pre-line">{t.heroTitleTop}</span>
-              <span className="mt-2 block text-black">
-                {t.heroTitleBottom}
-              </span>
-            </h1>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <a href="#fleet" className="btn-white h-14 px-7">
-                {t.explore}
-                <ArrowRight size={18} />
-              </a>
-              <a href="#book" className="btn-dark h-14 px-7">
-                {t.book}
-                <CalendarDays size={18} />
-              </a>
-            </div>
+          <div
+            className="pointer-events-none absolute inset-x-5 top-[24%] z-10 mx-auto max-w-[1400px] text-center sm:inset-x-8 lg:top-[20%]"
+            style={{
+              opacity: journeyOpacity,
+              transform: `translate3d(0, ${(1 - journeyReveal) * 70}px, 0) scale(${0.9 + journeyReveal * 0.1})`,
+            }}
+          >
+            <p className="text-[clamp(3rem,7.3vw,8.5rem)] font-black leading-[0.86] tracking-[-0.07em] text-black">
+              {t.journeyTitle}
+            </p>
           </div>
+
+          <div
+            className="hero-signature pointer-events-none absolute inset-x-3 top-1/2 z-30 mx-auto max-w-[1180px] sm:inset-x-8"
+            style={{
+              opacity: signatureProgress,
+              transform: `translate3d(0, calc(-50% + ${18 - signatureProgress * 18}px), 0) scale(${0.9 + signatureProgress * 0.1})`,
+            }}
+          >
+            <svg viewBox="0 0 1100 360" role="img" aria-label="EV Rental signature" className="h-auto w-full overflow-visible">
+              <defs>
+                <mask id="ev-signature-reveal">
+                  <rect x="0" y="0" width={signatureProgress * 1100} height="360" fill="white" />
+                </mask>
+              </defs>
+              <g mask="url(#ev-signature-reveal)">
+                <text
+                  x="550"
+                  y="230"
+                  textAnchor="middle"
+                  className="hero-signature-text"
+                  fill="#b9f227"
+                  stroke="#b9f227"
+                  strokeWidth="1.8"
+                >
+                  EV Rental
+                </text>
+                <path
+                  d="M118 274 C320 254 585 225 952 168 C830 240 620 286 370 300"
+                  pathLength="1"
+                  fill="none"
+                  stroke="#b9f227"
+                  strokeWidth="9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="1"
+                  strokeDashoffset={1 - signatureProgress}
+                />
+              </g>
+            </svg>
+          </div>
+
+          <div
+            className="hero-motion-car pointer-events-none absolute z-20"
+            style={{
+              opacity: 1 - smoothStep(0.9, 1, progress),
+              transform: `translate3d(${driveProgress * 42}vw, ${carBob}px, 0) scale(${1 + driveProgress * 0.12})`,
+            }}
+          >
+            <img src={heroCarImage} alt="" className="h-auto w-full select-none drop-shadow-[0_28px_28px_rgba(0,0,0,.38)]" />
+          </div>
+
+          <div className="absolute bottom-0 left-0 z-30 h-1 bg-acid" style={{ width: `${progress * 100}%` }} aria-hidden="true" />
         </div>
       </section>
 
@@ -354,89 +473,91 @@ function Benefits({ t }) {
   )
 }
 
-function CarArtwork({ variant }) {
-  const colors = [
-    ['#dbe5e7', '#232b2f'],
-    ['#d9f0c2', '#10220d'],
-    ['#dce2ee', '#1b2444'],
-  ][variant]
-
-  return (
-    <div className="relative h-52 overflow-hidden" style={{ background: `linear-gradient(145deg, ${colors[0]}, #f8faf8)` }}>
-      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full border border-black/10" />
-      <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full border border-black/10" />
-      <svg viewBox="0 0 520 210" className="absolute inset-x-0 bottom-0 w-full translate-y-1" aria-hidden="true">
-        <ellipse cx="270" cy="176" rx="215" ry="20" fill="#000" opacity=".12" />
-        <path
-          d="M60 137c8-29 26-45 64-51l75-12c28-39 55-54 98-56h52c38 1 70 20 103 65l23 8c22 7 34 24 35 51l-4 18H71c-14 0-19-10-11-23Z"
-          fill={colors[1]}
-        />
-        <path d="M220 72c28-31 49-40 81-41h43c31 1 55 15 79 50l-203-9Z" fill="#91a5ad" opacity=".75" />
-        <path d="M297 32 277 75M350 32l27 48" stroke="#eef7f8" strokeWidth="4" opacity=".65" />
-        <path d="M82 130h55M438 104l50 18" stroke="#d9ff72" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="158" cy="158" r="40" fill="#111" />
-        <circle cx="158" cy="158" r="22" fill="#718087" />
-        <circle cx="158" cy="158" r="8" fill="#dce5e5" />
-        <circle cx="414" cy="158" r="40" fill="#111" />
-        <circle cx="414" cy="158" r="22" fill="#718087" />
-        <circle cx="414" cy="158" r="8" fill="#dce5e5" />
-      </svg>
-    </div>
-  )
-}
-
 function Fleet({ t }) {
+  const sectionRef = useRef(null)
+  const viewportRef = useRef(null)
+  const trackRef = useRef(null)
+  const progress = useScrollProgress(sectionRef)
+  const [travel, setTravel] = useState(0)
+
+  useEffect(() => {
+    const viewport = viewportRef.current
+    const track = trackRef.current
+    if (!viewport || !track) return undefined
+
+    const measure = () => setTravel(Math.max(0, track.scrollWidth - viewport.clientWidth))
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(viewport)
+    observer.observe(track)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section id="fleet" className="section-shell bg-fog dark:bg-[#0b0f10]">
-      <div className="section-inner">
-        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-          <div>
-            <p className="eyebrow"><Car size={15} />{t.fleetEyebrow}</p>
-            <h2 className="section-title whitespace-pre-line">{t.fleetTitle}</h2>
+    <section ref={sectionRef} id="fleet" className="relative h-[500svh] bg-[#0d0e0f] text-white">
+      <div className="sticky top-0 flex h-[100svh] min-h-[620px] flex-col overflow-hidden py-8 sm:py-10 lg:py-12">
+        <div className="mx-auto flex w-full max-w-[1440px] items-end justify-between gap-8 px-5 sm:px-8 lg:px-12">
+          <div className="max-w-4xl">
+            <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[.2em] text-acid sm:text-xs">
+              <Car size={15} />{t.fleetEyebrow}
+            </p>
+            <h2 className="mt-4 whitespace-pre-line text-[clamp(2.45rem,5vw,5.5rem)] font-black leading-[.9] tracking-[-.06em]">
+              {t.fleetTitle}
+            </h2>
           </div>
-          <p className="max-w-md text-base font-medium leading-7 text-black/60 dark:text-white/60">{t.fleetBody}</p>
+          <p className="hidden max-w-sm text-sm font-medium leading-7 text-white/55 lg:block">{t.fleetBody}</p>
         </div>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-3">
-          {t.cars.map((car, index) => (
-            <article key={car.name} className="fleet-card group">
-              <div className="relative overflow-hidden">
-                <CarArtwork variant={index} />
-                <span className="absolute left-5 top-5 border border-black/20 bg-white/85 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-black backdrop-blur">
-                  {car.type}
-                </span>
-              </div>
-              <div className="p-6 sm:p-7">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[.18em] text-black/40 dark:text-white/40">EV Rental</p>
-                    <h3 className="mt-1 text-3xl font-black tracking-[-.04em]">{car.name}</h3>
+        <div ref={viewportRef} className="mt-7 flex-1 overflow-hidden sm:mt-9">
+          <div
+            ref={trackRef}
+            className="showcase-track flex h-full w-max items-center gap-4 px-5 sm:gap-5 sm:px-8 lg:gap-6 lg:px-12"
+            style={{ transform: `translate3d(${-progress * travel}px, 0, 0)` }}
+          >
+            {showcaseCars.map((car, index) => {
+              const spriteIndex = index % 5
+              return (
+                <article key={`${car.brand}-${car.model}`} className="showcase-card group">
+                  <div className="showcase-frame">
+                    <div className="showcase-frame-inner">
+                      <span className="absolute left-5 top-5 z-10 text-[10px] font-black uppercase tracking-[.2em] text-white/35">
+                        {(index + 1).toString().padStart(2, '0')} / 10
+                      </span>
+                      <span className="absolute right-5 top-5 z-10 text-[10px] font-black uppercase tracking-[.18em] text-acid">
+                        {car.type}
+                      </span>
+                      <div className="showcase-car-window">
+                        <img
+                          src={index < 5 ? fleetSpriteImage : fleetSpriteImageTwo}
+                          alt={`${car.brand} ${car.model}`}
+                          className="showcase-sprite"
+                          style={{ transform: `translate3d(${-(spriteIndex + 0.5) * 20}%, -50%, 0)` }}
+                        />
+                      </div>
+                      <div className="absolute bottom-[18%] left-5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.14em] text-white/40">
+                        <BatteryCharging size={15} className="text-acid" /> {car.range}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="block text-xl font-black">{car.price}</span>
-                    <span className="text-xs font-semibold text-black/45 dark:text-white/45">{car.suffix}</span>
+                  <div className="showcase-label">
+                    <span>{car.brand}</span>
+                    <strong>{car.model}</strong>
                   </div>
-                </div>
-                <div className="my-6 grid grid-cols-2 border-y border-black/10 py-4 dark:border-white/10">
-                  <div className="border-r border-black/10 dark:border-white/10">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-black/40 dark:text-white/40">{t.range}</p>
-                    <p className="mt-1 flex items-center gap-2 text-sm font-black"><Route size={15} />{car.range}</p>
-                  </div>
-                  <div className="pl-5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-black/40 dark:text-white/40">{t.seats}</p>
-                    <p className="mt-1 flex items-center gap-2 text-sm font-black"><Car size={15} />{car.seats}</p>
-                  </div>
-                </div>
-                <a href="#book" className="btn-white h-12 w-full text-sm">
-                  {t.reserve}<ArrowRight size={16} />
-                </a>
-              </div>
-            </article>
-          ))}
+                </article>
+              )
+            })}
+          </div>
         </div>
 
-        <div className="mt-8 flex justify-center">
-          <a href="#fleet" className="text-link">{t.viewAll}<ArrowRight size={17} /></a>
+        <div className="mx-auto mt-5 flex w-full max-w-[1440px] items-center gap-4 px-5 sm:px-8 lg:px-12">
+          <span className="text-[10px] font-black tabular-nums tracking-[.18em] text-white/40">
+            {Math.min(10, Math.floor(progress * 9) + 1).toString().padStart(2, '0')}
+          </span>
+          <div className="h-px flex-1 bg-white/15">
+            <div className="h-full bg-acid" style={{ width: `${Math.max(3, progress * 100)}%` }} />
+          </div>
+          <span className="text-[10px] font-black tracking-[.18em] text-white/40">10</span>
         </div>
       </div>
     </section>
@@ -546,6 +667,16 @@ function App() {
   const t = copy[lang]
 
   useEffect(() => {
+    const targetId = window.location.hash.slice(1)
+    if (!targetId) return undefined
+
+    const frameId = window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'instant', block: 'start' })
+    })
+    return () => window.cancelAnimationFrame(frameId)
+  }, [])
+
+  useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#050708' : '#ffffff')
     localStorage.setItem('evr-theme', dark ? 'dark' : 'light')
@@ -561,8 +692,8 @@ function App() {
       <Header t={t} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
       <main>
         <Hero t={t} />
-        <Benefits t={t} />
         <Fleet t={t} />
+        <Benefits t={t} />
         <HowItWorks t={t} />
         <Cta t={t} />
       </main>
