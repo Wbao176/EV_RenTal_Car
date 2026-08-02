@@ -32,6 +32,10 @@ const copy = {
     heroTitleTop: 'EV Rental —\ncùng bạn',
     heroTitleBottom: 'trên mọi hành trình.',
     journeyTitle: 'Cùng bạn trên mọi nẻo đường',
+    heroIntroTitle: 'Thuê xe tự lái, chủ động hành trình.',
+    heroIntroAccent: '',
+    heroIntroBody: 'Chọn một chiếc EV tinh tế và tận hưởng hành trình linh hoạt, êm ái theo cách riêng.',
+    heroIntroAction: 'Khám phá dòng xe',
     heroBody:
       'Chọn xe trong vài phút, nhận xe linh hoạt và tận hưởng từng cây số với một hành trình không phát thải.',
     explore: 'Khám phá dòng xe',
@@ -96,6 +100,10 @@ const copy = {
     heroTitleTop: 'EV Rental —\nwith you',
     heroTitleBottom: 'on every journey.',
     journeyTitle: 'With you on every road',
+    heroIntroTitle: 'Move at your own',
+    heroIntroAccent: 'rhythm.',
+    heroIntroBody: 'Choose a refined EV and enjoy a flexible, effortless drive designed around you.',
+    heroIntroAction: 'Explore the fleet',
     heroBody:
       'Choose your car in minutes, pick it up your way and enjoy every kilometre with a quieter, emission-free drive.',
     explore: 'Explore the fleet',
@@ -159,6 +167,8 @@ const benefitIcons = [BatteryCharging, ShieldCheck, Clock3, Check]
 const stepIcons = [MapPin, CalendarDays, Car]
 const heroRoadImage = `${import.meta.env.BASE_URL}images/ev-hero-road.png`
 const heroCarImage = `${import.meta.env.BASE_URL}images/ev-scroll-car.png`
+const heroWheelImage = `${import.meta.env.BASE_URL}images/ev-wheel-spin.png`
+const signatureLogoImage = `${import.meta.env.BASE_URL}images/ev-rental-logo-final.png`
 const fleetSpriteImage = `${import.meta.env.BASE_URL}images/ev-fleet-sprite.png`
 const fleetSpriteImageTwo = `${import.meta.env.BASE_URL}images/ev-fleet-sprite-2.png`
 
@@ -333,9 +343,13 @@ function Hero({ t }) {
   const driveProgress = smoothStep(0.08, 0.88, progress)
   const sceneZoom = smoothStep(0.16, 0.88, progress)
   const journeyReveal = smoothStep(0.28, 0.52, progress)
-  const journeyOpacity = journeyReveal * (1 - smoothStep(0.78, 0.98, progress) * 0.72)
+  const journeyOpacity = 1 - smoothStep(0.78, 0.98, progress) * 0.72
   const signatureProgress = smoothStep(0.48, 0.9, progress)
-  const carBob = Math.sin(driveProgress * Math.PI * 8) * -2
+  const introExit = smoothStep(0.035, 0.22, progress)
+  const roadVibration = Math.sin(driveProgress * Math.PI * 8) * 0.55
+  const carRoadOffset = driveProgress * 14 + roadVibration
+  const wheelRotation = driveProgress * 900
+  const journeyWords = t.journeyTitle.split(' ')
 
   return (
     <>
@@ -360,65 +374,100 @@ function Hero({ t }) {
           />
 
           <div
+            className="hero-intro absolute inset-x-5 top-[18%] z-[15] mx-auto max-w-[1060px] text-center sm:inset-x-8 sm:top-[19%]"
+            style={{
+              opacity: 1 - introExit,
+              pointerEvents: introExit > 0.96 ? 'none' : 'auto',
+              transform: `translate3d(0, ${introExit * -44}px, 0) scale(${1 - introExit * 0.035})`,
+            }}
+            aria-hidden={introExit > 0.96}
+          >
+            <div className="hero-intro-panel">
+              <h1 className="hero-intro-title">
+                {t.heroIntroTitle}
+                {t.heroIntroAccent && <span className="hero-intro-accent"> {t.heroIntroAccent}</span>}
+              </h1>
+              <p className="hero-intro-body">{t.heroIntroBody}</p>
+              <a href="#fleet" className="hero-intro-cta">
+                {t.heroIntroAction}
+                <ArrowRight size={18} strokeWidth={1.8} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+
+          <div
             className="pointer-events-none absolute inset-x-5 top-[24%] z-10 mx-auto max-w-[1400px] text-center sm:inset-x-8 lg:top-[20%]"
             style={{
               opacity: journeyOpacity,
-              transform: `translate3d(0, ${(1 - journeyReveal) * 70}px, 0) scale(${0.9 + journeyReveal * 0.1})`,
+              transform: `translate3d(${-journeyReveal * 1.5}vw, ${(1 - journeyReveal) * 70}px, 0) scale(${0.9 + journeyReveal * 0.1})`,
             }}
           >
             <p className="text-[clamp(3rem,7.3vw,8.5rem)] font-black leading-[0.86] tracking-[-0.07em] text-black">
-              {t.journeyTitle}
+              {journeyWords.map((word, index) => {
+                const wordProgress = smoothStep(0.25 + index * 0.035, 0.43 + index * 0.035, progress)
+
+                return (
+                  <span
+                    key={`${word}-${index}`}
+                    className="journey-word"
+                    style={{
+                      opacity: wordProgress,
+                      transform: `translate3d(${(1 - wordProgress) * 24}px, ${(1 - wordProgress) * 54}px, 0) rotate(${(1 - wordProgress) * 2.5}deg)`,
+                    }}
+                  >
+                    {word}
+                  </span>
+                )
+              })}
             </p>
           </div>
 
           <div
-            className="hero-signature pointer-events-none absolute inset-x-3 top-1/2 z-30 mx-auto max-w-[1180px] sm:inset-x-8"
+            className="hero-signature pointer-events-none absolute inset-x-5 top-1/2 z-30 mx-auto max-w-[1080px] sm:inset-x-10"
             style={{
               opacity: signatureProgress,
               transform: `translate3d(0, calc(-50% + ${18 - signatureProgress * 18}px), 0) scale(${0.9 + signatureProgress * 0.1})`,
             }}
           >
-            <svg viewBox="0 0 1100 360" role="img" aria-label="EV Rental signature" className="h-auto w-full overflow-visible">
-              <defs>
-                <mask id="ev-signature-reveal">
-                  <rect x="0" y="0" width={signatureProgress * 1100} height="360" fill="white" />
-                </mask>
-              </defs>
-              <g mask="url(#ev-signature-reveal)">
-                <text
-                  x="550"
-                  y="230"
-                  textAnchor="middle"
-                  className="hero-signature-text"
-                  fill="#b9f227"
-                  stroke="#b9f227"
-                  strokeWidth="1.8"
-                >
-                  EV Rental
-                </text>
-                <path
-                  d="M118 274 C320 254 585 225 952 168 C830 240 620 286 370 300"
-                  pathLength="1"
-                  fill="none"
-                  stroke="#b9f227"
-                  strokeWidth="9"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeDasharray="1"
-                  strokeDashoffset={1 - signatureProgress}
-                />
-              </g>
-            </svg>
+            <div
+              role="img"
+              aria-label="EV Rental signature"
+              className="hero-signature-mark"
+              style={{
+                clipPath: `inset(0 ${(1 - signatureProgress) * 100}% 0 0)`,
+                backgroundPosition: `${115 - signatureProgress * 150}% 50%`,
+                WebkitMaskImage: `url("${signatureLogoImage}")`,
+                maskImage: `url("${signatureLogoImage}")`,
+              }}
+            />
           </div>
 
           <div
             className="hero-motion-car pointer-events-none absolute z-20"
             style={{
               opacity: 1 - smoothStep(0.9, 1, progress),
-              transform: `translate3d(${driveProgress * 42}vw, ${carBob}px, 0) scale(${1 + driveProgress * 0.12})`,
+              transform: `translate3d(${driveProgress * 42}vw, ${carRoadOffset}px, 0) scale(${1 + driveProgress * 0.12})`,
             }}
           >
-            <img src={heroCarImage} alt="" className="h-auto w-full select-none drop-shadow-[0_28px_28px_rgba(0,0,0,.38)]" />
+            <span className="hero-car-contact-shadow" aria-hidden="true" />
+            <img src={heroCarImage} alt="" className="hero-car-image h-auto w-full select-none" />
+            <span className="hero-wheel hero-wheel-rear" aria-hidden="true">
+              <img
+                src={heroWheelImage}
+                alt=""
+                className="hero-wheel-rotor"
+                style={{ transform: `rotate(${wheelRotation}deg)` }}
+              />
+            </span>
+            <span className="hero-wheel hero-wheel-front" aria-hidden="true">
+              <img
+                src={heroWheelImage}
+                alt=""
+                className="hero-wheel-rotor"
+                style={{ transform: `rotate(${wheelRotation}deg)` }}
+              />
+            </span>
+            <img src={heroCarImage} alt="" className="hero-rear-wheel-occluder" aria-hidden="true" />
           </div>
 
           <div className="absolute bottom-0 left-0 z-30 h-1 bg-acid" style={{ width: `${progress * 100}%` }} aria-hidden="true" />

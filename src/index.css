@@ -129,12 +129,176 @@
     will-change: opacity, background-position;
   }
 
+  .hero-intro {
+    transform-origin: center top;
+    will-change: transform, opacity;
+  }
+
+  .hero-intro-panel {
+    animation: hero-intro-enter .9s cubic-bezier(.2, .72, .2, 1) both;
+  }
+
+  .hero-intro-title {
+    max-width: 1180px;
+    margin: 0 auto;
+    color: #0a0d0e;
+    font-size: clamp(2.8rem, 4.9vw, 5.6rem);
+    font-weight: 520;
+    letter-spacing: -.068em;
+    line-height: .9;
+    text-wrap: balance;
+    text-shadow: 0 3px 24px rgba(255, 255, 255, .62);
+  }
+
+  .hero-intro-accent {
+    color: #385500;
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -.075em;
+  }
+
+  .hero-intro-body {
+    max-width: 610px;
+    margin: 1.25rem auto 0;
+    color: rgba(0, 0, 0, .64);
+    font-size: clamp(.92rem, 1.25vw, 1.08rem);
+    font-weight: 450;
+    line-height: 1.65;
+    text-shadow: 0 2px 16px rgba(255, 255, 255, .82);
+  }
+
+  .hero-intro-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    min-height: 3.4rem;
+    margin-top: .6rem;
+    padding: .85rem 1.45rem;
+    border: 1px solid #080b0d;
+    border-radius: 999px;
+    background: #080b0d;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, .18);
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    transition: transform .25s ease, background-color .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
+  }
+
+  .hero-intro-cta:hover {
+    border-color: #b9f227;
+    background: #b9f227;
+    box-shadow: 0 18px 38px rgba(185, 242, 39, .22);
+    color: #080b0d;
+    transform: translateY(-2px);
+  }
+
+  @keyframes hero-intro-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 28px, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
   .hero-motion-car {
     bottom: 4vh;
     left: 24%;
     width: clamp(520px, 56vw, 980px);
-    transform-origin: center bottom;
+    transform-origin: 50% 86%;
     will-change: transform, opacity;
+  }
+
+  .hero-car-image {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 18px 16px rgba(0, 0, 0, .28));
+  }
+
+  .hero-car-contact-shadow {
+    position: absolute;
+    left: 22%;
+    bottom: 12.4%;
+    z-index: 0;
+    width: 62%;
+    height: 6.8%;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 39% 56%, rgba(0, 0, 0, .88) 0 8%, rgba(0, 0, 0, .52) 19%, transparent 43%),
+      radial-gradient(ellipse at 7% 54%, rgba(0, 0, 0, .82) 0 7%, rgba(0, 0, 0, .46) 17%, transparent 38%),
+      radial-gradient(ellipse at center, rgba(0, 0, 0, .58), rgba(0, 0, 0, .24) 48%, transparent 76%);
+    filter: blur(7px);
+    opacity: .82;
+    transform: skewX(-9deg) scaleX(.96);
+    transform-origin: center;
+  }
+
+  .hero-wheel {
+    position: absolute;
+    z-index: 2;
+    aspect-ratio: 1;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 3%, rgba(0, 0, 0, .72) 10%, #000 18% 100%);
+    mask-image: linear-gradient(to bottom, transparent 3%, rgba(0, 0, 0, .72) 10%, #000 18% 100%);
+    filter: brightness(.72) contrast(1.16) saturate(.72);
+    transform-origin: center;
+  }
+
+  .hero-wheel-rear {
+    left: 17.68%;
+    top: 46.7%;
+    width: 14.6%;
+    transform: scaleX(.46);
+  }
+
+  .hero-wheel-rear .hero-wheel-rotor {
+    -webkit-mask-image: radial-gradient(circle closest-side at 49.9% 48%, #000 0 77%, rgba(0, 0, 0, .9) 82%, rgba(0, 0, 0, .28) 88%, transparent 94%);
+    mask-image: radial-gradient(circle closest-side at 49.9% 48%, #000 0 77%, rgba(0, 0, 0, .9) 82%, rgba(0, 0, 0, .28) 88%, transparent 94%);
+  }
+
+  .hero-rear-wheel-occluder {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: auto;
+    clip-path: inset(33% 64% 10% 15%);
+    -webkit-mask-image: radial-gradient(ellipse 3.35% 15% at 24.97% 61.9%, transparent 0 91%, rgba(0, 0, 0, .55) 97%, #000 100%);
+    mask-image: radial-gradient(ellipse 3.35% 15% at 24.97% 61.9%, transparent 0 91%, rgba(0, 0, 0, .55) 97%, #000 100%);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .hero-wheel-front {
+    left: 37%;
+    top: 49.5%;
+    width: 19%;
+    transform: scaleX(.58);
+  }
+
+  .hero-wheel-rotor {
+    display: block;
+    width: 100%;
+    max-width: none;
+    user-select: none;
+    transform-origin: 49.9% 48%;
+    will-change: transform;
+  }
+
+  .journey-word {
+    display: inline-block;
+    margin-right: .18em;
+    transform-origin: left bottom;
+    will-change: transform, opacity;
+  }
+
+  .journey-word:last-child {
+    margin-right: 0;
   }
 
   .hero-signature {
@@ -143,12 +307,19 @@
     will-change: transform, opacity;
   }
 
-  .hero-signature-text {
-    font-family: "Segoe Script", "Brush Script MT", "Snell Roundhand", cursive;
-    font-size: 154px;
-    font-style: italic;
-    font-weight: 700;
-    letter-spacing: -12px;
+  .hero-signature-mark {
+    width: 100%;
+    aspect-ratio: 1200 / 453;
+    background-image: linear-gradient(105deg, #b9f227 0 42%, #efffc0 49%, #b9f227 57% 100%);
+    background-size: 220% 100%;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    transform-origin: left center;
+    will-change: clip-path;
   }
 
   .showcase-track {
@@ -287,8 +458,22 @@
     width: 112vw;
   }
 
-  .hero-signature-text {
-    font-size: 132px;
+  .hero-intro {
+    inset-inline: 1rem;
+    width: auto;
+  }
+
+  .hero-intro-body {
+    width: min(100%, 21rem);
+    padding-inline: .35rem;
+    font-size: .88rem;
+    line-height: 1.55;
+  }
+
+  .hero-intro-cta {
+    min-height: 3.25rem;
+    margin-top: .75rem;
+    padding-inline: 1.3rem;
   }
 
   .showcase-card {
