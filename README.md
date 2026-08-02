@@ -8,7 +8,7 @@ Homepage responsive được xây dựng bằng React, Vite và Tailwind CSS.
 npm install
 npm run dev
 ```
-ccc
+
 ## Build production
 
 ```bash
